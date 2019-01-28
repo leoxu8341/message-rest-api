@@ -8,6 +8,7 @@
 namespace AppBundle\Interfaces;
 
 use AppBundle\Entity\Message;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * Interface MessageRepositoryInterface
@@ -17,7 +18,7 @@ interface MessageRepositoryInterface
 {
     public function findById(int $messageId): ?Message;
 
-    public function findMessages($sort): array;
+    public function findMessages($sort): QueryBuilder;
 
     public function save(Message $message): void;
 

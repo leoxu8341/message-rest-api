@@ -55,7 +55,7 @@ class MessageController extends Controller
      * @param ParamFetcherInterface $paramFetcher
      *
      * @Annotations\QueryParam(
-     *     name="sort",
+     *     name="sorting",
      *     default="DESC",
      *     requirements="DESC|ASC",
      *     nullable=true,

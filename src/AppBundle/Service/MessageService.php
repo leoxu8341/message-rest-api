@@ -23,6 +23,7 @@ use FOS\RestBundle\View\View;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * Class MessageService
@@ -65,14 +66,14 @@ class MessageService
     /**
      * @param ParamFetcherInterface $paramFetcher
      *
-     * @return array
+     * @return QueryBuilder
      */
-    public function getMessages(ParamFetcherInterface $paramFetcher): array
+    public function getMessages(ParamFetcherInterface $paramFetcher): QueryBuilder
     {
-        $sort = $paramFetcher->get('sort');
-        $messages = $this->messageRepository->findMessages($sort);
+        $sort = $paramFetcher->get('sorting');
+        $query = $this->messageRepository->findMessages($sort);
 
-        return $messages;
+        return $query;
     }
 
     /**

@@ -44,6 +44,7 @@ class Message
      * @ORM\JoinColumns({
      *   @ORM\JoinColumn(name="user_id", referencedColumnName="id", onDelete="CASCADE")
      * })
+     * @Serializer\Expose()
      */
     private $user;
 
