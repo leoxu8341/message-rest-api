@@ -1,0 +1,11 @@
+# test api
+test_api:
+  resource: "@AppBundle/Controller/DefaultController.php"
+  type: annotation
+  prefix: /
+
+# message api
+message_api:
+  resource: "@AppBundle/Controller/MessageController.php"
+  type: annotation
+  prefix: /

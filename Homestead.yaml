@@ -1,0 +1,22 @@
+ip: 192.168.10.10
+memory: 2048
+cpus: 1
+provider: virtualbox
+authorize: ~/.ssh/id_rsa.pub
+keys:
+    - ~/.ssh/id_rsa
+folders:
+    -
+        map: /Users/leo/Documents/samples/message-rest-api
+        to: /home/vagrant/message-rest-api
+sites:
+    -
+        map: homestead.test
+        to: /home/vagrant/message-rest-api/web
+        type: symfony
+
+databases:
+    - message_db
+
+name: message-rest-api
+hostname: message-rest-api

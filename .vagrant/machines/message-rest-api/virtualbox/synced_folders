@@ -1,0 +1,1 @@
+{"virtualbox":{"/home/vagrant/message-rest-api":{"type":null,"mount_options":["uid=1000","gid=1000"],"guestpath":"/home/vagrant/message-rest-api","hostpath":"/Users/leo/Documents/samples/message-rest-api","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/Users/leo/Documents/samples/message-rest-api","disabled":false,"__vagrantfile":true}}}
