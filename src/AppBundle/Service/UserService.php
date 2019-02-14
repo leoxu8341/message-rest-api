@@ -13,9 +13,12 @@
 
 namespace AppBundle\Service;
 
-use AppBundle\Data\MessageAndUserData;
 use AppBundle\Entity\User;
+use AppBundle\Form\UserPostForm;
 use AppBundle\Interfaces\UserRepositoryInterface;
+use AppBundle\Traits\ExceptionTrait;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * Class UserService
@@ -24,18 +27,37 @@ use AppBundle\Interfaces\UserRepositoryInterface;
  */
 final class UserService
 {
+    use ExceptionTrait;
+
     /**
      * @var UserRepositoryInterface
      */
     private $userRepository;
 
     /**
+     * @var FormService
+     */
+    private $formService;
+
+    /**
+     * @var UserPasswordEncoderInterface
+     */
+    private $passwordEncoder;
+
+    /**
      * UserService constructor.
      * @param UserRepositoryInterface $userRepository
+     * @param FormService $formService
+     * @param UserPasswordEncoderInterface $passwordEncoder
      */
-    public function __construct(UserRepositoryInterface $userRepository)
-    {
+    public function __construct(
+        UserRepositoryInterface $userRepository,
+        FormService $formService,
+        UserPasswordEncoderInterface $passwordEncoder
+    ) {
         $this->userRepository = $userRepository;
+        $this->formService = $formService;
+        $this->passwordEncoder = $passwordEncoder;
     }
 
     /**
@@ -57,6 +79,15 @@ final class UserService
     }
 
     /**
+     * @param string $username
+     * @return User|null
+     */
+    public function getUserByUsername($username): ?User
+    {
+        return $this->userRepository->findByUsername($username);
+    }
+
+    /**
      * @return array
      */
     public function getUsers(): array
@@ -69,31 +100,35 @@ final class UserService
      */
     public function storeUser(User $user): void
     {
+        $emailUser = $this->getUserByEmail($user->getEmail());
+        if ($emailUser) {
+            $this->throwConflicException('User with email: '.$user->getEmail().' already exists');
+        }
+
+        $nameUser = $this->getUserByUsername($user->getUsername());
+        if ($nameUser) {
+            $this->throwConflicException('User with username: '.$user->getUsername().' already exists');
+        }
+
+        $password = $this->passwordEncoder->encodePassword($user, $user->getPassword());
+        $user->setPassword($password);
+
         $this->userRepository->save($user);
     }
 
-
     /**
-     * @param MessageAndUserData $userData
+     * @param Request $request
      * @return User
      */
-    public function createNewUser(
-        $userData
-    ) {
-        $name = $userData->getName();
-        $email = $userData->getEmail();
+    public function createNewUser(Request $request) : User
+    {
+        $user = new User();
 
-        $user = $this->getUserByEmail($email);
-
-        if (is_null($user)) {
-            $user = new User();
-
-            $user->setEmail($email);
-        }
-
-        $user->setUsername($name);
-
-        $this->storeUser($user);
+        $this->formService->postForm(
+            json_decode($request->getContent(), true),
+            $user,
+            UserPostForm::class
+        );
 
         return $user;
     }

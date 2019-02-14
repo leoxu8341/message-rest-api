@@ -3,11 +3,12 @@
 namespace AppBundle\Form;
 
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class MessagePostForm extends AbstractType
+class UserPostForm extends AbstractType
 {
     /**
      * @param FormBuilderInterface $builder
@@ -15,8 +16,9 @@ class MessagePostForm extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder
-            ->add('message_body', TextType::class, ['required' => true])
+        $builder->add('username', TextType::class, ['required' => true])
+            ->add('email', EmailType::class, ['required' => true])
+            ->add('password', TextType::class, ['required' => true])
         ;
     }
 
@@ -26,7 +28,7 @@ class MessagePostForm extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'AppBundle\Entity\Message',
+            'data_class' => 'AppBundle\Entity\User',
             'csrf_protection' => false
         ));
     }

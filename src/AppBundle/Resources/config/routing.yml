@@ -8,4 +8,16 @@ test_api:
 message_api:
   resource: "@AppBundle/Controller/MessageController.php"
   type: annotation
+  prefix: /api
+
+# user api
+user_api:
+  resource: "@AppBundle/Controller/UserController.php"
+  type: annotation
+  prefix: /api
+
+# login
+login:
+  resource: "@AppBundle/Controller/LoginController.php"
+  type: annotation
   prefix: /

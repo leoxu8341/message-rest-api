@@ -4,6 +4,7 @@ namespace AppBundle\Service;
 
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Class FormService.
@@ -15,6 +16,10 @@ class FormService
      */
     private $formFactory;
 
+    /**
+     * FormService constructor.
+     * @param FormFactoryInterface $formFactory
+     */
     public function __construct(FormFactoryInterface $formFactory)
     {
         $this->formFactory = $formFactory;
@@ -24,7 +29,6 @@ class FormService
      * @param $data
      * @param $object
      * @param $formClass
-     * @return array
      */
     public function postForm(
         $data,
@@ -45,7 +49,9 @@ class FormService
             ];
         }
 
-        return $errordata;
+        if (!empty($errordata)) {
+            throw new BadRequestHttpException($errordata);
+        }
     }
 
     /**

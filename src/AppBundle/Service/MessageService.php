@@ -13,7 +13,6 @@
 
 namespace AppBundle\Service;
 
-use AppBundle\Data\MessageAndUserData;
 use AppBundle\Entity\Message;
 use AppBundle\Entity\User;
 use AppBundle\Form\MessagePostForm;
@@ -22,8 +21,8 @@ use FOS\RestBundle\Request\ParamFetcherInterface;
 use FOS\RestBundle\View\View;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class MessageService
@@ -49,31 +48,49 @@ class MessageService
 
     /**
      * MessageService constructor.
-     * @param MessageRepositoryInterface $messageRepository
      * @param PaginatorInterface $paginator
+     * @param MessageRepositoryInterface $messageRepository
      * @param FormService $formService
      */
     public function __construct(
-        MessageRepositoryInterface $messageRepository,
         PaginatorInterface $paginator,
+        MessageRepositoryInterface $messageRepository,
         FormService $formService
     ){
-        $this->messageRepository = $messageRepository;
         $this->paginator = $paginator;
+        $this->messageRepository = $messageRepository;
         $this->formService = $formService;
     }
 
     /**
      * @param ParamFetcherInterface $paramFetcher
+     * @param User $user | null
      *
      * @return QueryBuilder
      */
-    public function getMessages(ParamFetcherInterface $paramFetcher): QueryBuilder
+    public function getMessages(ParamFetcherInterface $paramFetcher, User $user = null): QueryBuilder
     {
         $sort = $paramFetcher->get('sorting');
-        $query = $this->messageRepository->findMessages($sort);
+        $query = $this->messageRepository->findMessages($sort, $user);
 
         return $query;
+    }
+
+    /**
+     * @param ParamFetcherInterface $paramFetcher
+     * @param array $messages
+     * @return View
+     */
+    public function getPaginatedView(
+        ParamFetcherInterface $paramFetcher,
+        $messages
+    ) {
+        $limit = $paramFetcher->get('page_limit');
+        $index = $paramFetcher->get('page_index');
+
+        $items = $this->paginator->paginate($messages, $index, $limit);
+
+        return View::create($items, Response::HTTP_OK);
     }
 
     /**
@@ -95,6 +112,16 @@ class MessageService
     }
 
     /**
+     * @param User $user
+     * @param int $messageId
+     * @return Message|null
+     */
+    public function getUserMessageById(User $user, int $messageId): ?Message
+    {
+        return $this->messageRepository->findByUserAndId($user, $messageId);
+    }
+
+    /**
      * @param int $messageId
      * @return Message|null
      */
@@ -104,73 +131,34 @@ class MessageService
     }
 
     /**
-     * @param ParamFetcherInterface $paramFetcher
-     * @param array $messages
-     * @return View
-     */
-    public function getPaginatedView(
-        ParamFetcherInterface $paramFetcher,
-        $messages
-    ) {
-        $limit = $paramFetcher->get('page_limit');
-        $index = $paramFetcher->get('page_index');
-
-        $items = $this->paginator->paginate($messages, $index, $limit);
-
-        return View::create($items, Response::HTTP_OK);
-    }
-
-    /**
      * @param Request $request
-     * @return array
+     * @return Message
      */
     public function getMessageData(Request $request)
     {
-        $messageData = new MessageAndUserData();
+        $message = new Message();
 
-        $errors = $this->formService->postForm(
+        $this->formService->postForm(
             json_decode($request->getContent(), true),
-            $messageData,
+            $message,
             MessagePostForm::class
         );
-
-        return [$messageData, $errors];
-    }
-
-    /**
-     * @param MessageAndUserData $messageData
-     * @param User $user
-     * @return Message
-     */
-    public function createNewMessage(
-        $messageData,
-        $user
-    ) {
-        $messageBody = $messageData->getMessage();
-
-        $message = new Message();
-        $message->setUser($user);
-        $message->setMessageBody($messageBody);
-
-        $this->storeMessage($message);
 
         return $message;
     }
 
     /**
      * @param Message $message
-     * @return View
+     * @param User $user
+     * @return Message
      */
-    public function getCreatedView(
-        $message
+    public function createNewMessage(
+        $message,
+        $user
     ) {
-        return View::create($message, Response::HTTP_CREATED);
-    }
+        $message->setUser($user);
+        $this->storeMessage($message);
 
-    /**
-     * @return View
-     */
-    public function getDeletedView() {
-        return View::create(null,Response::HTTP_OK);
+        return $message;
     }
 }

@@ -4,18 +4,20 @@ namespace AppBundle\Controller;
 
 use AppBundle\Service\MessageService;
 use AppBundle\Service\UserService;
+use AppBundle\Traits\CustomViewsTrait;
 use Doctrine\DBAL\Connection;
 use FOS\RestBundle\Request\ParamFetcherInterface;
 use FOS\RestBundle\View\View;
 use FOS\RestBundle\Controller\Annotations;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class MessageController extends Controller
 {
+    use CustomViewsTrait;
+
     /**
      * @var MessageService
      */
@@ -46,7 +48,6 @@ class MessageController extends Controller
         $this->userService = $userService;
         $this->connection = $connection;
     }
-
 
     /**
      * @Route("/messages", name="get_all_messages", methods={"GET"})
@@ -91,6 +92,49 @@ class MessageController extends Controller
     }
 
     /**
+     * @Route("/messages/my", name="get_my_messages", methods={"GET"})
+     *
+     * @param Request               $request
+     * @param ParamFetcherInterface $paramFetcher
+     *
+     * @Annotations\QueryParam(
+     *     name="sorting",
+     *     default="DESC",
+     *     requirements="DESC|ASC",
+     *     nullable=true,
+     *     strict=true,
+     *     description="sort direction"
+     * )
+     *
+     * @Annotations\QueryParam(
+     *    name="page_limit",
+     *    default="10",
+     *    nullable=true,
+     *    requirements="\d+",
+     *    strict=true,
+     *    description="How many to return"
+     * )
+     *
+     * @Annotations\QueryParam(
+     *    name="page_index",
+     *    default="1",
+     *    nullable=true,
+     *    requirements="\d+",
+     *    strict=true,
+     *    description="page number"
+     * )
+     *
+     * @return View
+     */
+    public function getUserMessagesAction(Request $request, ParamFetcherInterface $paramFetcher)
+    {
+        $user = $this->getUser();
+        $messages = $this->messageService->getMessages($paramFetcher, $user);
+
+        return $this->messageService->getPaginatedView($paramFetcher, $messages);
+    }
+
+    /**
      * @Route("/messages", name="create_new_messages", methods={"POST"})
      *
      * @param Request $request
@@ -102,18 +146,17 @@ class MessageController extends Controller
         $this->connection->beginTransaction();
 
         try {
-            list($messageData, $errors) = $this->messageService->getMessageData($request);
+            $user = $this->getUser();
 
-            if (!empty($errors)) {
-                return View::create($errors, Response::HTTP_BAD_REQUEST);
-            }
-
-            $user = $this->userService->createNewUser($messageData);
-            $message = $this->messageService->createNewMessage($messageData, $user);
+            $message = $this->messageService
+                ->createNewMessage(
+                    $this->messageService->getMessageData($request),
+                    $user
+                );
 
             $this->connection->commit();
 
-            return $this->messageService->getCreatedView($message);
+            return $this->getCreatedView($message);
         } catch (\Exception $e) {
             $this->connection->rollBack();
             throw $e;
@@ -125,7 +168,7 @@ class MessageController extends Controller
      *     "/messages/{messageId}",
      *     name="delete_messages",
      *     methods={"DELETE"},
-     *     requirements={"message_id" ="\d+"}
+     *     requirements={"messageId" ="\d+"}
      *     )
      *
      * @param Request $request
@@ -139,7 +182,9 @@ class MessageController extends Controller
         $this->connection->beginTransaction();
 
         try {
-            $message = $this->messageService->getMessageById($messageId);
+            $user = $this->getUser();
+
+            $message = $this->messageService->getUserMessageById($user, $messageId);
             if (is_null($message)) {
                 throw new NotFoundHttpException('This Message Is Not Found!');
             }
@@ -148,7 +193,7 @@ class MessageController extends Controller
 
             $this->connection->commit();
 
-            return $this->messageService->getDeletedView();
+            return $this->getDeletedView();
         } catch (\Exception $e) {
             $this->connection->rollBack();
             throw $e;

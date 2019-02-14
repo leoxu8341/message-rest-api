@@ -53,6 +53,15 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * @param string $username
+     * @return User|null
+     */
+    public function findByUsername(string $username): ?User
+    {
+        return $this->objectRepository->findOneBy(['username' => $username]);
+    }
+
+    /**
      * @return array
      */
     public function findAllUsers(): array

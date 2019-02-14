@@ -3,6 +3,7 @@
 namespace AppBundle\Repository;
 
 use AppBundle\Entity\Message;
+use AppBundle\Entity\User;
 use AppBundle\Interfaces\MessageRepositoryInterface;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -45,15 +46,32 @@ final class MessageRepository implements MessageRepositoryInterface
     }
 
     /**
-     * @param $sort
+     * @param User $user
+     * @param int $messageId
+     * @return Message|null
+     */
+    public function findByUserAndId(User $user, int $messageId): ?Message
+    {
+        return $this->objectRepository->findOneBy(['id' => $messageId, 'user' => $user]);
+    }
+
+    /**
+     * @param string $sort
+     * @param User $user | null
      * @return QueryBuilder
      */
-    public function findMessages($sort): QueryBuilder
+    public function findMessages(string $sort, User $user = null): QueryBuilder
     {
         $query = $this->entityManager->createQueryBuilder()
             ->select('m')
-            ->from(Message::class, 'm')
-            ->orderBy('m.createdAt', $sort);
+            ->from(Message::class, 'm');
+
+        if ($user) {
+            $query->where('m.user = :user')
+                ->setParameter('user', $user);
+        }
+
+        $query->orderBy('m.createdAt', $sort);
 
         return $query;
     }
