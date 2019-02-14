@@ -55,7 +55,7 @@ class User implements UserInterface, EncoderAwareInterface
     /**
      * @var string
      *
-     * @Assert\NotBlank()
+     * @Assert\NotBlank(message="Username should not be blank")
      *
      * @ORM\Column(name="username", type="string", length=64, unique=true)
      * @Serializer\Expose()
@@ -65,7 +65,7 @@ class User implements UserInterface, EncoderAwareInterface
     /**
      * @var string
      *
-     * @Assert\NotBlank()
+     * @Assert\NotBlank(message="Password should not be blank")
      *
      * @ORM\Column(name="password", type="string", length=128)
      */

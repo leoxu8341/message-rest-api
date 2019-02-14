@@ -51,7 +51,7 @@ class Message
     /**
      * @var string
      *
-     * @Assert\NotBlank()
+     * @Assert\NotBlank(message="Message body should not be empty")
      * @ORM\Column(name="message_body", type="text")
      * @Serializer\Expose()
      */
