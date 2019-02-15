@@ -33,8 +33,8 @@ class LoginController extends Controller
      */
     public function loginAction(Request $request)
     {
-        $token = $this->loginService->login(json_decode($request->getContent(), true));
+        list($user, $token) = $this->loginService->login(json_decode($request->getContent(), true));
 
-        return $this->getView(['token' => $token]);
+        return $this->getView(['user' => $user, 'token' => $token]);
     }
 }

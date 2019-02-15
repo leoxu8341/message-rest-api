@@ -62,7 +62,7 @@ final class LoginService
 
     /**
      * @param $loginData
-     * @return string
+     * @return array
      */
     public function login($loginData) {
         if (!isset($loginData['email']) ||
@@ -86,7 +86,9 @@ final class LoginService
             $this->throwUnauthorizedException('Wrong Password');
         }
 
-        return $this->getToken($user);
+        $token = $this->getToken($user);
+
+        return [$user, $token];
     }
 
     /**
